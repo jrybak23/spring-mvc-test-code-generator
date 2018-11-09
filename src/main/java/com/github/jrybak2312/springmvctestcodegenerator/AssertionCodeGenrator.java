@@ -41,11 +41,6 @@ public class AssertionCodeGenrator {
         JsonNode jsonNode = objectMapper.readTree(file);
         List<String> asserts = new ArrayList<>();
 
-        if (jsonNode.getNodeType().equals(ARRAY)) {
-            asserts.add(".andExpect(jsonPath(\"$\", hasSize(" + jsonNode.size() + ")))");
-            asserts.add("");
-        }
-
         iterateNode(asserts, jsonNode, singletonList("$"));
 
         return asserts.stream()
@@ -54,6 +49,11 @@ public class AssertionCodeGenrator {
 
     private void iterateNode(List<String> asserts, JsonNode jsonNode, List<String> tokens) {
         if (jsonNode instanceof ArrayNode) {
+
+            String path = getPath(tokens);
+            asserts.add("");
+            asserts.add(".andExpect(jsonPath(\"" + path + "\", hasSize(" + jsonNode.size() + ")))");
+
             Iterator<JsonNode> elements = jsonNode.elements();
             int i = 0;
             while (elements.hasNext()) {
@@ -71,10 +71,14 @@ public class AssertionCodeGenrator {
                 iterateNode(asserts, entry.getValue(), newTokens);
             });
         } else {
-            String path = String.join("", tokens);
+            String path = getPath(tokens);
             String assertionCode = ".andExpect(jsonPath(\"" + path + "\", is(" + jsonNode + ")))";
             asserts.add(assertionCode);
         }
+    }
+
+    private String getPath(List<String> tokens) {
+        return String.join("", tokens);
     }
 
     private List<String> createNewTokens(List<String> tokens, String newToken) {

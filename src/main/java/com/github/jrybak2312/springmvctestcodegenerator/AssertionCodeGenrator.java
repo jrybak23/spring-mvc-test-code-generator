@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import static com.fasterxml.jackson.databind.node.JsonNodeType.ARRAY;
 import static java.lang.System.lineSeparator;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.joining;
@@ -72,7 +71,12 @@ public class AssertionCodeGenrator {
             });
         } else {
             String path = getPath(tokens);
-            String assertionCode = ".andExpect(jsonPath(\"" + path + "\", is(" + jsonNode + ")))";
+            String assertionCode;
+            if (jsonNode.isNull()) {
+                assertionCode = ".andExpect(jsonPath(\"" + path + "\", is(nullValue())))";
+            } else {
+                assertionCode = ".andExpect(jsonPath(\"" + path + "\", is(" + jsonNode + ")))";
+            }
             asserts.add(assertionCode);
         }
     }
